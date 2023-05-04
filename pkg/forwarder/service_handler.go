@@ -2,16 +2,19 @@ package forwarder
 
 import (
 	"context"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 
 	pb "github.com/powerslider/cosmos-grpc-forwarder/client/grpc/api/cosmos/forwarder/v1"
 )
 
+// ServiceHandler implements api.cosmos.forwarder.v1.Service gRPC service.
 type ServiceHandler struct {
 	ServiceGRPCClient tmservice.ServiceClient
 	*pb.UnimplementedServiceServer
 }
 
+// NewServiceHandler is a constructor function for ServiceHandler.
 func NewServiceHandler(client tmservice.ServiceClient) *ServiceHandler {
 	return &ServiceHandler{
 		ServiceGRPCClient:          client,
@@ -19,6 +22,7 @@ func NewServiceHandler(client tmservice.ServiceClient) *ServiceHandler {
 	}
 }
 
+// GetNodeInfo queries the current node info.
 func (h *ServiceHandler) GetNodeInfo(ctx context.Context, req *pb.GetNodeInfoRequest) (*pb.GetNodeInfoResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetNodeInfo(ctx, &tmservice.GetNodeInfoRequest{})
 	if err != nil {
@@ -41,6 +45,7 @@ func (h *ServiceHandler) GetNodeInfo(ctx context.Context, req *pb.GetNodeInfoReq
 	}, nil
 }
 
+// GetSyncing queries node syncing.
 func (h *ServiceHandler) GetSyncing(ctx context.Context, req *pb.GetSyncingRequest) (*pb.GetSyncingResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetSyncing(ctx, &tmservice.GetSyncingRequest{})
 	if err != nil {
@@ -52,6 +57,7 @@ func (h *ServiceHandler) GetSyncing(ctx context.Context, req *pb.GetSyncingReque
 	}, nil
 }
 
+// GetLatestBlock returns the latest block.
 func (h *ServiceHandler) GetLatestBlock(ctx context.Context, req *pb.GetLatestBlockRequest) (*pb.GetLatestBlockResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetLatestBlock(ctx, &tmservice.GetLatestBlockRequest{})
 	if err != nil {
@@ -65,6 +71,7 @@ func (h *ServiceHandler) GetLatestBlock(ctx context.Context, req *pb.GetLatestBl
 	}, nil
 }
 
+// GetBlockByHeight queries block for given height.
 func (h *ServiceHandler) GetBlockByHeight(ctx context.Context, req *pb.GetBlockByHeightRequest) (*pb.GetBlockByHeightResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: req.Height,
@@ -80,6 +87,7 @@ func (h *ServiceHandler) GetBlockByHeight(ctx context.Context, req *pb.GetBlockB
 	}, nil
 }
 
+// GetLatestValidatorSet queries latest validator-set.
 func (h *ServiceHandler) GetLatestValidatorSet(
 	ctx context.Context, req *pb.GetLatestValidatorSetRequest) (*pb.GetLatestValidatorSetResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetLatestValidatorSet(ctx, &tmservice.GetLatestValidatorSetRequest{
@@ -96,6 +104,7 @@ func (h *ServiceHandler) GetLatestValidatorSet(
 	}, nil
 }
 
+// GetValidatorSetByHeight queries validator-set at a given height.
 func (h *ServiceHandler) GetValidatorSetByHeight(
 	ctx context.Context, req *pb.GetValidatorSetByHeightRequest) (*pb.GetValidatorSetByHeightResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetValidatorSetByHeight(ctx, &tmservice.GetValidatorSetByHeightRequest{
@@ -113,6 +122,9 @@ func (h *ServiceHandler) GetValidatorSetByHeight(
 	}, nil
 }
 
+// ABCIQuery defines a query handler that supports ABCI queries directly to the
+// application, bypassing Tendermint completely. The ABCI query must contain
+// a valid and supported path, including app, custom, p2p, and store.
 func (h *ServiceHandler) ABCIQuery(ctx context.Context, req *pb.ABCIQueryRequest) (*pb.ABCIQueryResponse, error) {
 	resp, err := h.ServiceGRPCClient.ABCIQuery(ctx, &tmservice.ABCIQueryRequest{
 		Data:   req.Data,
@@ -167,6 +179,10 @@ func remapBuildDeps(resp []*tmservice.Module) []*pb.Module {
 }
 
 func remapProofOps(resp *tmservice.ProofOps) *pb.ProofOps {
+	if resp == nil {
+		return nil
+	}
+
 	proofOps := make([]pb.ProofOp, 0)
 	for _, p := range resp.Ops {
 		proofOps = append(proofOps, pb.ProofOp{
@@ -182,6 +198,10 @@ func remapProofOps(resp *tmservice.ProofOps) *pb.ProofOps {
 }
 
 func remapSDKBlock(resp *tmservice.Block) *pb.Block {
+	if resp == nil {
+		return nil
+	}
+
 	header := resp.GetHeader()
 
 	return &pb.Block{
@@ -206,14 +226,3 @@ func remapSDKBlock(resp *tmservice.Block) *pb.Block {
 		LastCommit: resp.GetLastCommit(),
 	}
 }
-
-//func (h *ServiceHandler) serviceGRPCClient(ctx context.Context) (pb.ServiceClient, error) {
-//	grpcConn, err := NewCosmosSDKGRPCConn(ctx, h.Logger, "grpc.osmosis.zone:9090")
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	c := tmservice.NewServiceClient(grpcConn)
-//
-//	return c, nil
-//}

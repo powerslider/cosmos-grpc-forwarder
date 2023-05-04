@@ -2,9 +2,8 @@ package client
 
 import (
 	"context"
-	"encoding/json"
-
 	"github.com/pkg/errors"
+	"github.com/powerslider/cosmos-grpc-forwarder/pkg/jsonconv"
 	"github.com/powerslider/cosmos-grpc-forwarder/pkg/log"
 
 	"time"
@@ -12,7 +11,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-func NewLoggingInterceptor(logger log.Logger) grpc.UnaryClientInterceptor {
+// NewLoggingInterceptor is a gRPC client interceptor for logging requests, responses and errors.
+func NewLoggingInterceptor(logger log.Logger, jsonConverter *jsonconv.JSONConverter) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
 		method string,
@@ -26,14 +26,14 @@ func NewLoggingInterceptor(logger log.Logger) grpc.UnaryClientInterceptor {
 		errResp := invoker(ctx, method, req, reply, cc, opts...)
 		duration := time.Since(start)
 
-		reqJSON, err := json.MarshalIndent(req, "", "  ")
+		reqJSON, err := jsonConverter.Marshal(req)
 		if err != nil {
 			logger.Error("error: request decoding: ", log.Error(errors.WithStack(err)))
 		}
 
-		respJSON, err := json.MarshalIndent(reply, "", "  ")
+		respJSON, err := jsonConverter.Marshal(reply)
 		if err != nil {
-			logger.Error("error: request decoding: ", log.Error(errors.WithStack(err)))
+			logger.Error("error: response decoding: ", log.Error(errors.WithStack(err)))
 		}
 
 		logger.Print("outgoing gRPC request",

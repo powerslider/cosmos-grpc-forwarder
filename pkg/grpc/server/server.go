@@ -48,10 +48,6 @@ func NewGRPCServer(
 		serverInstance: grpc.NewServer(opts...),
 	}
 
-	// // Register gRPC services.
-	// for _, service := range *serviceRegistry {
-	// 	s.serverInstance.RegisterService(service.ServiceDesc, service.Instance)
-	// }
 	// Enable server reflection feature.
 	reflection.Register(s.serverInstance)
 

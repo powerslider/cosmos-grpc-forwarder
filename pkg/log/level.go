@@ -65,6 +65,7 @@ func fromZapLevel(lvl zapcore.Level) Level {
 	return InfoLevel
 }
 
+//nolint:unused
 func toZapLevel(lvl Level) zapcore.Level {
 	switch lvl {
 	case DebugLevel:

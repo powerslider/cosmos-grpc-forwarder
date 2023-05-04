@@ -4,10 +4,15 @@ ifneq ("$(wildcard $(envfile))","")
 	export $(shell sed 's/=.*//' $(envfile))
 endif
 
-BUF_VERSION:=1.17.0
 GOLANGCI_VERSION:=1.52.2
 PROJECT_NAME:=cosmos-grpc-forwarder
+SERVER_NAME:=grpc-server
+CLIENT_NAME:=grpc-client
 GOPATH_BIN:=$(shell go env GOPATH)/bin
+DOCKER := $(shell which docker)
+PROTO_DOCKER_VERSION=0.12.1
+PROTO_DOCKER_IMAGE_NAME=ghcr.io/cosmos/proto-builder:$(PROTO_DOCKER_VERSION)
+PROTO_IMAGE_EXEC=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(PROTO_DOCKER_IMAGE_NAME)
 
 .PHONY: install
 install:
@@ -15,14 +20,6 @@ install:
 	curl -sSfL \
 		"https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh" | \
 		sh -s -- -b ${GOPATH_BIN} v${GOLANGCI_VERSION}
-
-	# Install buf tool for protobuf stub generation, linting, etc.
-	go install github.com/bufbuild/buf/cmd/buf@v${BUF_VERSION}
-
-	git clone https://github.com/cosmos/gogoproto.git; \
-      cd gogoproto; \
-      go mod download; \
-      make install
 
 
 .PHONY: all
@@ -49,18 +46,23 @@ cover-test:
 
 .PHONY: build-server
 build-server:
-	@echo ">>> Building ${PROJECT_NAME} API server..."
-	go build -o bin/server cmd/${PROJECT_NAME}/main.go
+	@echo ">>> Building ${PROJECT_NAME} gRPC server..."
+	go build -o bin/${SERVER_NAME} cmd/${SERVER_NAME}/main.go
+
+.PHONY: build-client
+build-client:
+	@echo ">>> Building ${PROJECT_NAME} gRPC client..."
+	go build -o bin/${CLIENT_NAME} cmd/${CLIENT_NAME}/main.go
 
 .PHONY: run-server
 run-server:
-	@echo ">>> Running ${PROJECT_NAME} API server..."
-	@go run ./cmd/${PROJECT_NAME}/main.go
+	@echo ">>> Running ${PROJECT_NAME} gRPC server..."
+	@go run ./cmd/${SERVER_NAME}/main.go
 
-.PHONY: docs
-docs:
-	@echo ">>> Generate Swagger API Documentation..."
-	swag init --generalInfo cmd/${PROJECT_NAME}/main.go
+.PHONY: run-client
+run-client:
+	@echo ">>> Running ${PROJECT_NAME} gRPC client..."
+	@go run ./cmd/${CLIENT_NAME}/main.go
 
 .PHONY: clean
 clean:
@@ -68,28 +70,14 @@ clean:
 	@rm -rf bin/*
 	@rm -rf .env
 
-
-DOCKER := $(shell which docker)
-protoVer=0.12.1
-protoImageName=ghcr.io/cosmos/proto-builder:$(protoVer)
-protoImage=$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(protoImageName)
-
 proto-all: proto-format proto-lint proto-gen
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@$(protoImage) buf generate
-
-proto-swagger-gen:
-	@echo "Generating Protobuf Swagger"
-	@$(protoImage) sh ./scripts/protoc-swagger-gen.sh
-	$(MAKE) update-swagger-docs
+	@$(PROTO_IMAGE_EXEC) buf generate
 
 proto-format:
-	@$(protoImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+	@$(PROTO_IMAGE_EXEC) find ./ -name "*.proto" -exec clang-format -i {} \;
 
 proto-lint:
-	@$(protoImage) buf lint --error-format=json
-
-proto-check-breaking:
-	@$(protoImage) buf breaking --against $(HTTPS_GIT)#branch=main
+	@$(PROTO_IMAGE_EXEC) buf lint --error-format=json
