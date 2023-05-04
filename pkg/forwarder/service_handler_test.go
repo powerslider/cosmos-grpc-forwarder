@@ -25,9 +25,14 @@ type testClients struct {
 }
 
 func TestServiceHandlerForwardedCalls(t *testing.T) {
+	var err error
+
 	ctx := context.Background()
 
-	_ = godotenv.Load("../../.env.test.dist")
+	err = godotenv.Load("../../.env.test.dist")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	appConfig := configs.InitializeConfig()
 
@@ -35,21 +40,16 @@ func TestServiceHandlerForwardedCalls(t *testing.T) {
 
 	jsonConverter := jsonconv.NewJSONConverter()
 
-	grpcClients, closer, err := setupTest(ctx, t, appConfig, logger, jsonConverter)
+	grpcClients, closer := setupTest(ctx, t, appConfig, logger, jsonConverter)
 	defer closer()
-
-	if err != nil {
-		t.Error(err)
-	}
 
 	verifyGetLatestBlock(ctx, t, grpcClients, jsonConverter)
 	verifyGetBlockByHeight(ctx, t, grpcClients, jsonConverter)
 	verifyGetSyncing(ctx, t, grpcClients, jsonConverter)
 	verifyGetNodeInfo(ctx, t, grpcClients, jsonConverter)
-	verifyGetValidatorSetByHeight(ctx, t, grpcClients, jsonConverter)
 	//verifyGetLatestValidatorSet(ctx, t, grpcClients, jsonConverter)
 	//verifyABCIQuery(ctx, t, grpcClients, jsonConverter)
-
+	verifyGetValidatorSetByHeight(ctx, t, grpcClients, jsonConverter)
 }
 
 func verifyGetLatestBlock(
@@ -217,7 +217,7 @@ func setupTest(
 	appConfig *configs.Config,
 	logger log.Logger,
 	jsonConverter *jsonconv.JSONConverter,
-) (testClients, func(), error) {
+) (testClients, func()) {
 	testConfig := testrunner.NewDefaultTestConfig(logger, appConfig, jsonConverter)
 
 	conn, closer, err := testrunner.NewUnaryTestSetup(ctx, testConfig)
@@ -241,7 +241,7 @@ func setupTest(
 	return testClients{
 		forwarderClient: forwarderClient,
 		originClient:    cosmosClient,
-	}, closer, nil
+	}, closer
 }
 
 func verifyResponses(

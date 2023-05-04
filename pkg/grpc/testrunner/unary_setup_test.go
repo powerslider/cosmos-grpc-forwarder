@@ -14,9 +14,14 @@ import (
 )
 
 func TestClientConnection(t *testing.T) {
+	var err error
+
 	ctx := context.Background()
 
-	_ = godotenv.Load("../../../.env.test.dist")
+	err = godotenv.Load("../../../.env.test.dist")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	conf := configs.InitializeConfig()
 

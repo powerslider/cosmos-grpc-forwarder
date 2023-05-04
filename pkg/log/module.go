@@ -1,5 +1,6 @@
 package log
 
+// InitializeLogger configures a sane default logger module.
 func InitializeLogger(logLevel string, logFormat string) *StructuredLogger {
 	lf, err := ParseFormat(logFormat)
 	if err != nil {
@@ -15,6 +16,6 @@ func InitializeLogger(logLevel string, logFormat string) *StructuredLogger {
 		WithFormat(lf),
 		WithLevel(ll),
 		AddCaller(),
-		LogToStdout(),
+		ToStdout(),
 	)
 }

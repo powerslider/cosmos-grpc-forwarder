@@ -54,6 +54,7 @@ func NewGRPCServer(
 	return s
 }
 
+// Instance return the underlying instance of grpc.Server.
 func (s *Server) Instance() *grpc.Server {
 	return s.serverInstance
 }
@@ -91,6 +92,7 @@ func (s *Server) Shutdown(ctx context.Context) {
 	}
 }
 
+// Run manages the gRPC server lifecycle on start and on shutdown.
 func (s *Server) Run(ctx context.Context) error {
 	errChan := make(chan error)
 

@@ -2,10 +2,11 @@ package server
 
 import (
 	"context"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/powerslider/cosmos-grpc-forwarder/pkg/jsonconv"
 	"google.golang.org/grpc/metadata"
-	"time"
 
 	"github.com/powerslider/cosmos-grpc-forwarder/pkg/log"
 	"google.golang.org/grpc"
@@ -31,7 +32,6 @@ func NewLoggingInterceptor(logger log.Logger, jsonConverter *jsonconv.JSONConver
 					log.String("request", string(reqJSON)),
 					log.Error(err),
 				)
-				//panic(err)
 			}
 		}()
 

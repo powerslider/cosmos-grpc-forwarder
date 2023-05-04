@@ -30,6 +30,7 @@ func (h *ServiceHandler) GetNodeInfo(ctx context.Context, req *pb.GetNodeInfoReq
 	}
 
 	appVersion := resp.GetApplicationVersion()
+
 	return &pb.GetNodeInfoResponse{
 		DefaultNodeInfo: resp.DefaultNodeInfo,
 		ApplicationVersion: &pb.VersionInfo{
@@ -58,7 +59,8 @@ func (h *ServiceHandler) GetSyncing(ctx context.Context, req *pb.GetSyncingReque
 }
 
 // GetLatestBlock returns the latest block.
-func (h *ServiceHandler) GetLatestBlock(ctx context.Context, req *pb.GetLatestBlockRequest) (*pb.GetLatestBlockResponse, error) {
+func (h *ServiceHandler) GetLatestBlock(
+	ctx context.Context, req *pb.GetLatestBlockRequest) (*pb.GetLatestBlockResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetLatestBlock(ctx, &tmservice.GetLatestBlockRequest{})
 	if err != nil {
 		return nil, err
@@ -72,7 +74,8 @@ func (h *ServiceHandler) GetLatestBlock(ctx context.Context, req *pb.GetLatestBl
 }
 
 // GetBlockByHeight queries block for given height.
-func (h *ServiceHandler) GetBlockByHeight(ctx context.Context, req *pb.GetBlockByHeightRequest) (*pb.GetBlockByHeightResponse, error) {
+func (h *ServiceHandler) GetBlockByHeight(
+	ctx context.Context, req *pb.GetBlockByHeightRequest) (*pb.GetBlockByHeightResponse, error) {
 	resp, err := h.ServiceGRPCClient.GetBlockByHeight(ctx, &tmservice.GetBlockByHeightRequest{
 		Height: req.Height,
 	})

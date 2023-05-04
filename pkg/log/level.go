@@ -7,22 +7,32 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Level represents a log level.
 type Level int
 
 const (
+	// DebugLevel debug log level
 	DebugLevel Level = iota - 1
+	// InfoLevel info log level
 	InfoLevel
+	// WarnLevel warn log level
 	WarnLevel
+	// ErrorLevel error log level
 	ErrorLevel
+	// DPanicLevel dpanic log level
 	DPanicLevel
+	// PanicLevel panic log level
 	PanicLevel
+	// FatalLevel fatal log level
 	FatalLevel
 )
 
+// Enabled checks if a log level is set.
 func (l Level) Enabled(lvl Level) bool {
 	return lvl >= l
 }
 
+// ParseLevel parses a log level from a string value.
 func ParseLevel(lvl string) (Level, error) {
 	switch strings.ToLower(lvl) {
 	case "fatal":

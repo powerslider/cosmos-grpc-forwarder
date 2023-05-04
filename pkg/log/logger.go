@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Logger represents all methods for logging at different levels.
 type Logger interface {
 	Print(msg string, args ...Field)
 	Debug(msg string, args ...Field)
@@ -18,8 +19,10 @@ type Logger interface {
 	Fatal(msg string, args ...Field)
 }
 
+// Field is a type alias for zap.Field.
 type Field = zap.Field
 
+// Re-mapped zap methods for statically typed log fields.
 var (
 	Skip        = zap.Skip
 	Binary      = zap.Binary
@@ -73,6 +76,7 @@ var (
 
 type logFunc func(logger *zap.Logger, msg string, fields ...Field)
 
+// StructuredLogger is an implementation of the Logger inteface for structured logging.
 type StructuredLogger struct {
 	base    *zap.Logger
 	options options
@@ -87,6 +91,8 @@ type StructuredLogger struct {
 	fatal  logFunc
 }
 
+var _ Logger = (*StructuredLogger)(nil)
+
 var _defaultOptions = options{
 	Development: false,
 	Format:      FormatJSON,
@@ -96,6 +102,7 @@ var _defaultOptions = options{
 	CallerSkip:  1,
 }
 
+// New constructs a new StructuredLogger.
 func New(opt ...Option) *StructuredLogger {
 	opts := _defaultOptions
 
@@ -185,6 +192,7 @@ func newLogger(opts options) *StructuredLogger {
 	return l
 }
 
+// WithOptions allows configuring a logger instance with pre-defined settings.
 func (l *StructuredLogger) WithOptions(opt ...Option) *StructuredLogger {
 	opts := l.options.Clone()
 
@@ -195,34 +203,42 @@ func (l *StructuredLogger) WithOptions(opt ...Option) *StructuredLogger {
 	return newLogger(opts)
 }
 
+// Print logs a log statement with either Debug on Info log levels.
 func (l *StructuredLogger) Print(msg string, fields ...Field) {
 	l.print(l.base, msg, fields...)
 }
 
+// Debug logs a log statement with Debug log level.
 func (l *StructuredLogger) Debug(msg string, fields ...Field) {
 	l.debug(l.base, msg, fields...)
 }
 
+// Info logs a log statement with Info log level.
 func (l *StructuredLogger) Info(msg string, fields ...Field) {
 	l.info(l.base, msg, fields...)
 }
 
+// Warn logs a log statement with Warn log level.
 func (l *StructuredLogger) Warn(msg string, fields ...Field) {
 	l.warn(l.base, msg, fields...)
 }
 
+// Error logs a log statement with Error log level.
 func (l *StructuredLogger) Error(msg string, fields ...Field) {
 	l.error(l.base, msg, fields...)
 }
 
+// DPanic logs a log statement with DPanic log level.
 func (l *StructuredLogger) DPanic(msg string, fields ...Field) {
 	l.dpanic(l.base, msg, fields...)
 }
 
+// Panic logs a log statement with Panic log level.
 func (l *StructuredLogger) Panic(msg string, fields ...Field) {
 	l.panic(l.base, msg, fields...)
 }
 
+// Fatal logs a log statement with Fatal log level.
 func (l *StructuredLogger) Fatal(msg string, fields ...Field) {
 	l.fatal(l.base, msg, fields...)
 }

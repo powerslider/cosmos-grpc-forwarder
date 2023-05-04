@@ -14,7 +14,10 @@ import (
 func main() {
 	ctx := context.Background()
 
-	_ = godotenv.Load(".env.dist")
+	err := godotenv.Load(".env.dist")
+	if err != nil {
+		panic(err)
+	}
 
 	conf := configs.InitializeConfig()
 
