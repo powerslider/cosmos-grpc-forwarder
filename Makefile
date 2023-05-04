@@ -23,11 +23,12 @@ install:
 
 
 .PHONY: all
-all: clean init lint test build-server
+all: clean init lint test build-server build-client
 
 .PHONY: init
 init:
 	@cp .env.dist .env
+	@cp .env.test.dist .env.test
 
 .PHONY: lint
 lint:
